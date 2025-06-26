@@ -105,4 +105,25 @@ private:
     }
 };
 
+class RateLimiterManager {
+public:
+    static RateLimiterManager& getInstance() {
+        std::call_once(initFlag_, []() {
+            instance_.reset(new RateLimiterManager());
+        });
+        return *instance_;
+    }
+
+    [[nodiscard]] bool allowRequest(const std::string& clientId) const {
+        return rateLimiter_->allowRequest(clientId);
+    }
+private:
+    RateLimiterManager() {
+        rateLimiter_ = RateLimiterFactory::createRateLimiter("Sliding", 100, 6000);
+    }
+    static std::unique_ptr<RateLimiterManager> instance_;
+    static std::once_flag initFlag_;
+    std::unique_ptr<RateLimiter> rateLimiter_;
+};
+
 #endif //RATELIMITER_H
